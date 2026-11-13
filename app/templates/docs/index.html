@@ -1,0 +1,64 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Documents &amp; Files{% endblock %}
+{% block content %}
+{% macro size(n) %}{% if n >= 1048576 %}{{ '%.1f'|format(n / 1048576) }} MB{% elif n >= 1024 %}{{ (n / 1024)|round|int }} KB{% else %}{{ n }} B{% endif %}{% endmacro %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+  <h1 class="page-title mb-0">Documents &amp; Files</h1>
+  <div class="text-secondary small">Storage used: {{ size(used) }} of {{ size(quota) }}</div>
+</div>
+<div class="tabs mb-3">
+  <a class="tab {{ 'active' if not view and not q }}" href="{{ url_for('docs.index') }}">Folders</a>
+  <a class="tab {{ 'active' if view == 'recent' }}" href="{{ url_for('docs.index', view='recent') }}">Recent files</a>
+  <a class="tab {{ 'active' if view == 'important' }}" href="{{ url_for('docs.index', view='important') }}">Important</a>
+</div>
+<form class="row g-2 mb-3" method="get" role="search">
+  <div class="col"><label class="visually-hidden" for="q">Search files</label><input class="form-control" id="q" name="q" type="search" placeholder="Search files by name" value="{{ q }}"></div>
+  <div class="col-auto"><button class="btn btn-outline-secondary" type="submit">Search</button></div>
+</form>
+
+{% if not view and not q %}
+<nav aria-label="Folder path" class="mb-3 small">
+  <a href="{{ url_for('docs.index') }}">My Documents</a>
+  {% for c in crumbs %} / {% if loop.last %}<strong>{{ c.name }}</strong>{% else %}<a href="{{ url_for('docs.index', folder=c.id) }}">{{ c.name }}</a>{% endif %}{% endfor %}
+</nav>
+{% if folders %}<div class="row g-2 mb-3">{% for f in folders %}
+  <div class="col-sm-6 col-lg-4"><a class="folder-card" href="{{ url_for('docs.index', folder=f.id) }}"><i data-lucide="folder"></i><span class="text-break">{{ f.name }}</span><span class="ms-auto text-secondary small">{{ counts.get(f.id, 0) }} files</span></a></div>{% endfor %}</div>{% endif %}
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-7"><section class="panel h-100">
+    <h2 class="panel-title">Upload files{% if folder %} to {{ folder.name }}{% endif %}</h2>
+    <form method="post" action="{{ url_for('docs.upload') }}" enctype="multipart/form-data">
+      {{ m.csrf() }}<input type="hidden" name="folder_id" value="{{ folder.id if folder else '' }}">
+      <div class="mb-3"><label class="form-label" for="files">Files</label><input class="form-control" id="files" type="file" name="files" multiple required accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.txt,.csv"><div class="form-text">PDF, Word, Excel, PowerPoint, images, TXT and CSV. Up to 10 MB each.</div></div>
+      <div class="row g-3 align-items-end"><div class="col-sm-6">{{ m.select('category', 'Category', categories, 'Other') }}</div><div class="col-sm-6 mb-3"><button class="btn btn-primary w-100" type="submit">Upload</button></div></div>
+    </form></section></div>
+  <div class="col-lg-5"><section class="panel h-100">
+    <h2 class="panel-title">New folder</h2>
+    <form method="post" action="{{ url_for('docs.folder_new') }}" class="d-flex gap-2">
+      {{ m.csrf() }}<input type="hidden" name="parent_id" value="{{ folder.id if folder else '' }}">
+      <label class="visually-hidden" for="folder-name">Folder name</label><input class="form-control" id="folder-name" name="name" maxlength="100" placeholder="Folder name" required><button class="btn btn-outline-secondary" type="submit">Create</button>
+    </form>
+    {% if folder %}<hr>
+    <form method="post" action="{{ url_for('docs.folder_rename', folder_id=folder.id) }}" class="d-flex gap-2 mb-2">{{ m.csrf() }}<label class="visually-hidden" for="rename">Rename folder</label><input class="form-control" id="rename" name="name" maxlength="100" value="{{ folder.name }}" required><button class="btn btn-outline-secondary" type="submit">Rename</button></form>
+    <form method="post" action="{{ url_for('docs.folder_delete', folder_id=folder.id) }}" onsubmit="return confirm('Delete this empty folder?')">{{ m.csrf() }}<button class="btn btn-outline-danger btn-sm" type="submit">Delete this folder</button></form>{% endif %}
+  </section></div>
+</div>
+{% endif %}
+
+<section class="panel p-0">
+  {% if files %}<ul class="list-clean">{% for d in files %}
+    <li class="row-item px-3 align-items-center">
+      <span class="file-ext">{{ d.ext }}</span>
+      <div class="flex-grow-1 text-break"><a class="fw-medium" href="{{ url_for('docs.view', doc_id=d.id) }}">{{ d.original_name }}</a>
+        <div class="meta"><span>{{ size(d.size) }}</span><span>{{ d.category }}</span><span>Uploaded {{ d.created_at|fdate }}</span></div></div>
+      <div class="row-actions">
+        {{ m.icon_form(url_for('docs.important', doc_id=d.id), 'star', 'Mark important' if not d.is_important else 'Remove from important', request.full_path.rstrip('?'), '', 'on' if d.is_important else '') }}
+        <a class="icon-btn" href="{{ url_for('docs.download', doc_id=d.id) }}" title="Download" aria-label="Download"><i data-lucide="download"></i></a>
+        <a class="icon-btn" href="{{ url_for('docs.edit', doc_id=d.id) }}" title="Rename or move" aria-label="Rename or move"><i data-lucide="pencil"></i></a>
+        {{ m.icon_form(url_for('docs.delete', doc_id=d.id), 'trash-2', 'Move to recycle bin', request.full_path.rstrip('?'), 'Move this file to the recycle bin?') }}
+      </div>
+    </li>{% endfor %}</ul>
+  {% else %}<div class="p-4 text-secondary">{% if q %}No files match your search.{% elif view %}No files here yet.{% else %}No files in this folder yet.{% endif %}</div>{% endif %}
+</section>
+{% endblock %}

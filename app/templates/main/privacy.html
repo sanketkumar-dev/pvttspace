@@ -1,0 +1,32 @@
+{% extends "public.html" %}
+{% block title %}Privacy policy{% endblock %}
+{% block card_class %}wide{% endblock %}
+{% block content %}
+<div class="legal">
+<h1 class="page-title">Privacy policy</h1>
+<p class="text-secondary">Last updated: November 2026</p>
+<p>{{ site_name }} is a personal workspace for notes and tasks. This page explains what information the service stores and how it is used.</p>
+
+<h2>Information we store</h2>
+<ul>
+  <li>Account details: your full name, email address, optional phone number, and a hashed version of your password. We never store your password in readable form.</li>
+  <li>Content you create: the notes and tasks you write, with their categories, dates and flags.</li>
+  <li>Session cookies: small cookies that keep you logged in and protect forms from forgery. They are not used for advertising.</li>
+</ul>
+
+<h2>How we use it</h2>
+<p>Your information is used only to run your account and show your own content back to you. Each account can only see its own notes and tasks. We do not sell your information, show advertising, or share your content with other users.</p>
+
+<h2>Third-party resources</h2>
+<p>Pages load fonts from Google Fonts and code libraries (Bootstrap and Lucide icons) from the jsDelivr network. Your browser contacts these services directly, so they can see your IP address and browser details when a page loads. They do not receive your notes or tasks.</p>
+
+<h2>Retention and deletion</h2>
+<p>Your data is kept until you delete it or ask us to remove your account. You can delete individual notes and tasks at any time. To delete your whole account and its data, email <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
+
+<h2>Security</h2>
+<p>Passwords are hashed, forms are protected against cross-site request forgery, and every record is tied to your account. No online service can promise perfect security, so avoid storing information in notes that would cause serious harm if exposed.</p>
+
+<h2>Contact</h2>
+<p>Questions about this policy can be sent to <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Goals &amp; Progress{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+  <h1 class="page-title mb-0">Goals &amp; Progress</h1>
+  <a class="btn btn-primary d-flex align-items-center gap-2" href="{{ url_for('goals.new') }}"><i data-lucide="plus"></i>New goal</a>
+</div>
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+  <div class="tabs flex-grow-1">
+    {% for key, label in [('active','Active'),('completed','History (completed)'),('all','All')] %}
+      <a class="tab {{ 'active' if view == key }}" href="{{ url_for('goals.index', view=key, category=category or None) }}">{{ label }} <span class="count">{{ counts[key] }}</span></a>
+    {% endfor %}
+  </div>
+  <form method="get" class="d-flex gap-2">
+    <input type="hidden" name="view" value="{{ view }}">
+    <label class="visually-hidden" for="category">Category</label>
+    <select class="form-select form-select-sm" id="category" name="category" onchange="this.form.submit()">
+      <option value="">All categories</option>
+      {% for c in categories %}<option value="{{ c }}" {{ 'selected' if c == category }}>{{ c }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+{% if goals %}
+<div class="row g-3">
+  {% for g in goals %}
+  <div class="col-md-6 col-xl-4"><article class="note-card">
+    <div class="d-flex justify-content-between gap-2"><a class="note-title" href="{{ url_for('goals.detail', goal_id=g.id) }}">{{ g.title }}</a><span class="small text-secondary">{{ g.category }}</span></div>
+    <div class="my-3">{{ m.progress(g.percent, g.title ~ ' progress') }}<div class="d-flex justify-content-between small text-secondary mt-1"><span>{{ g.done_count }} of {{ g.total }} steps</span><span>{{ g.percent }}%</span></div></div>
+    <div class="meta mt-auto">
+      {% if g.end_date %}<span class="{{ 'text-danger fw-medium' if g.end_date < today and not g.completed }}">{{ 'Ended ' if g.end_date < today else 'Ends ' }}{{ g.end_date|fdate }}</span>{% else %}<span>No end date</span>{% endif %}
+      {% if g.completed %}<span class="fw-medium">Completed</span>{% elif g.end_date and g.end_date < today %}<span class="text-danger">Pending</span>{% endif %}
+    </div>
+  </article></div>
+  {% endfor %}
+</div>
+{% else %}<section class="panel text-secondary">{% if view == 'completed' %}No completed goals yet.{% else %}No goals here yet. <a href="{{ url_for('goals.new') }}">Create a goal</a>.{% endif %}</section>{% endif %}
+{% endblock %}

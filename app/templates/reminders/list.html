@@ -1,0 +1,31 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Reminders &amp; Alarms{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+  <h1 class="page-title mb-0">Reminders &amp; Alarms</h1>
+  <a class="btn btn-primary d-flex align-items-center gap-2" href="{{ url_for('reminders.new') }}"><i data-lucide="plus"></i>New reminder</a>
+</div>
+<section class="panel mb-3" id="notify-panel" data-enabled="{{ 1 if current_user.reminder_notifications else 0 }}">
+  <h2 class="panel-title">Browser notifications</h2>
+  <p class="mb-2" id="notify-status">Checking notification permission</p>
+  <button class="btn btn-outline-secondary btn-sm" type="button" id="notify-btn" hidden>Allow notifications</button>
+  <p class="text-secondary small mt-3 mb-0">Reminders fire only while PVTTSpace is open in a browser tab or as an installed app that is running. When the site is fully closed, the browser cannot wake it, so a reminder shows as due the next time you open it. Background push to a closed browser needs a push server, which this version does not include. You can turn reminder notifications off in <a href="{{ url_for('account.settings') }}">Settings</a>.</p>
+</section>
+<div class="tabs mb-3">
+  {% for key, label in [('upcoming','Upcoming'),('due','Due now'),('completed','Completed'),('all','All')] %}
+    <a class="tab {{ 'active' if flt == key }}" href="{{ url_for('reminders.index', filter=key) }}">{{ label }} <span class="count">{{ counts[key] }}</span></a>{% endfor %}
+</div>
+<section class="panel p-0">
+  {% if items %}<ul class="list-clean">{% for r in items %}
+    {% set overdue = (not r.is_done) and r.remind_at <= now %}
+    <li class="row-item px-3">
+      {{ m.check_form(url_for('reminders.toggle', rid=r.id), r.is_done, url_for('reminders.index', filter=flt)) }}
+      <div class="flex-grow-1"><div class="{{ 'done' if r.is_done }}">{{ r.title }}</div>{% if r.description %}<div class="desc">{{ r.description|truncate(140) }}</div>{% endif %}
+        <div class="meta"><span class="{{ 'text-danger fw-medium' if overdue }}">{{ 'Due ' if overdue else '' }}{{ r.remind_at|fdatetime }}</span>{% if r.repeat != 'none' %}<span>Repeats {{ r.repeat }}</span>{% endif %}</div></div>
+      <div class="row-actions"><a class="icon-btn" href="{{ url_for('reminders.edit', rid=r.id) }}" title="Edit" aria-label="Edit reminder"><i data-lucide="pencil"></i></a>
+        {{ m.icon_form(url_for('reminders.delete', rid=r.id), 'trash-2', 'Delete reminder', '', 'Delete this reminder?') }}</div>
+    </li>{% endfor %}</ul>
+  {% else %}<div class="p-4 text-secondary">Nothing here. <a href="{{ url_for('reminders.new') }}">Add a reminder</a>.</div>{% endif %}
+</section>
+{% endblock %}

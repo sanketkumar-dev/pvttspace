@@ -1,0 +1,16 @@
+{% extends "app.html" %}
+{% block title %}{{ doc.original_name }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+  <h1 class="page-title mb-0 text-break">{{ doc.original_name }}</h1>
+  <div class="d-flex gap-2"><a class="btn btn-primary" href="{{ url_for('docs.download', doc_id=doc.id) }}">Download</a><a class="btn btn-outline-secondary" href="{{ url_for('docs.index', folder=doc.folder_id) }}">Back to files</a></div>
+</div>
+{% if previewable %}
+  <section class="panel p-2">
+    {% if doc.ext == 'pdf' %}<iframe class="pdf-frame" src="{{ url_for('docs.raw', doc_id=doc.id) }}" title="PDF preview of {{ doc.original_name }}"></iframe>
+    {% else %}<img class="img-preview" src="{{ url_for('docs.raw', doc_id=doc.id) }}" alt="Preview of {{ doc.original_name }}">{% endif %}
+  </section>
+{% else %}
+  <section class="panel text-secondary">A preview is not available for .{{ doc.ext }} files. Use Download to open it on your device.</section>
+{% endif %}
+{% endblock %}

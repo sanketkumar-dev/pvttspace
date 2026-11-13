@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="public">
+  <header class="public-head">
+    <a class="brand" href="{{ url_for('main.index') }}">{{ site_name }}</a>
+  </header>
+  <main class="public-main">
+    <div class="public-card {% block card_class %}{% endblock %}">
+      {% include "_flashes.html" %}
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+  <footer class="public-foot">
+    <a href="{{ url_for('main.privacy') }}">Privacy policy</a>
+    <a href="{{ url_for('main.terms') }}">Terms and conditions</a>
+  </footer>
+</div>
+{% endblock %}

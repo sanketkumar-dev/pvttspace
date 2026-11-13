@@ -1,0 +1,7 @@
+Flask>=3.0,<4
+Flask-SQLAlchemy>=3.1,<4
+SQLAlchemy>=2.0.44,<2.1
+Flask-Login>=0.6.3,<1
+Flask-WTF>=1.2,<2
+python-dotenv>=1.0,<2
+tzdata

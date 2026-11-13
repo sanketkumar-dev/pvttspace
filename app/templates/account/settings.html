@@ -1,0 +1,43 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<h1 class="page-title">Settings</h1>
+{% macro size(n) %}{% if n >= 1048576 %}{{ '%.1f'|format(n / 1048576) }} MB{% else %}{{ (n / 1024)|round|int }} KB{% endif %}{% endmacro %}
+<div class="row g-4">
+  <div class="col-lg-6">
+    <section class="panel mb-4"><h2 class="panel-title">Appearance</h2>
+      <form method="post" action="{{ url_for('account.set_theme') }}" class="d-flex flex-wrap gap-3 align-items-center">{{ m.csrf() }}
+        {% for v, label in [('light','Light'),('dark','Dark'),('system','Match my device')] %}<div class="form-check"><input class="form-check-input" type="radio" name="value" id="theme-{{ v }}" value="{{ v }}" {{ 'checked' if theme == v }}><label class="form-check-label" for="theme-{{ v }}">{{ label }}</label></div>{% endfor %}
+        <button class="btn btn-primary btn-sm" type="submit">Apply</button></form></section>
+    <section class="panel mb-4"><h2 class="panel-title">Privacy and notifications</h2>
+      <form method="post" action="{{ url_for('account.set_privacy') }}">{{ m.csrf() }}
+        <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="hide_email" name="hide_email" {{ 'checked' if current_user.hide_email }}><label class="form-check-label" for="hide_email">Hide my email address in the sidebar</label></div>
+        <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="reminder_notifications" name="reminder_notifications" {{ 'checked' if current_user.reminder_notifications }}><label class="form-check-label" for="reminder_notifications">Show reminder notifications while PVTTSpace is open</label></div>
+        <p class="form-text">Your notes, tasks, files and money records are private to your account. They are never shared with other users.</p>
+        <button class="btn btn-primary btn-sm" type="submit">Save settings</button></form></section>
+    <section class="panel mb-4"><h2 class="panel-title">Change email</h2>
+      <form method="post" action="{{ url_for('account.change_email') }}" novalidate>{{ m.csrf() }}
+        {{ m.field('email', 'New email address', '', 'email', true, 'autocomplete="email"', 'Current: ' ~ current_user.email) }}
+        {{ m.field('password', 'Your password', '', 'password', true, 'autocomplete="current-password"') }}
+        <button class="btn btn-primary btn-sm" type="submit">Update email</button></form></section>
+  </div>
+  <div class="col-lg-6">
+    <section class="panel mb-4"><h2 class="panel-title">Export and backup</h2>
+      <p class="text-secondary">Storage used by your files: {{ size(used) }} of {{ size(quota) }}.</p>
+      <div class="d-flex flex-wrap gap-2 mb-3"><a class="btn btn-outline-secondary" href="{{ url_for('account.export_json') }}">Export data (JSON)</a><a class="btn btn-primary" href="{{ url_for('account.backup_zip') }}">Download full backup (ZIP)</a></div>
+      <p class="form-text">The ZIP backup holds all your data and uploaded files. Keep it somewhere safe, it is not encrypted.</p>
+      <h3 class="panel-sub">Restore from a backup</h3>
+      <form method="post" action="{{ url_for('account.restore') }}" enctype="multipart/form-data">{{ m.csrf() }}
+        <label class="visually-hidden" for="backup">Backup file</label><input class="form-control mb-2" id="backup" type="file" name="backup" accept=".zip" required>
+        <p class="form-text">Restore adds the items in the backup to your account. Restoring into the same account creates duplicates.</p>
+        <button class="btn btn-outline-secondary btn-sm" type="submit">Restore backup</button></form></section>
+    <section class="panel border-danger"><h2 class="panel-title text-danger">Delete account</h2>
+      <p class="text-secondary">This permanently deletes your account, notes, tasks, files and all other data. It cannot be undone.</p>
+      <form method="post" action="{{ url_for('account.delete_account') }}" onsubmit="return confirm('Delete your account and all data permanently?')">{{ m.csrf() }}
+        {{ m.field('del_password', 'Your password', '', 'password', true, 'autocomplete="current-password"') }}
+        {{ m.field('confirm', 'Type DELETE to confirm', '', 'text', true, 'autocomplete="off"') }}
+        <button class="btn btn-danger btn-sm" type="submit">Delete my account</button></form></section>
+  </div>
+</div>
+{% endblock %}

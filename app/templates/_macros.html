@@ -1,0 +1,43 @@
+{% macro csrf() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro field(name, label, value='', type='text', required=false, attrs='', help='') %}
+<div class="mb-3">
+  <label class="form-label" for="{{ name }}">{{ label }}</label>
+  <input class="form-control" id="{{ name }}" name="{{ name }}" type="{{ type }}" value="{{ value }}" {{ 'required' if required }} {{ attrs|safe }}>
+  {% if help %}<div class="form-text">{{ help }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro select(name, label, options, value='') %}
+<div class="mb-3">
+  <label class="form-label" for="{{ name }}">{{ label }}</label>
+  <select class="form-select" id="{{ name }}" name="{{ name }}">
+    {% for o in options %}
+      {% if o is string %}{% set ov, ol = o, o %}{% else %}{% set ov, ol = o[0], o[1] %}{% endif %}
+      <option value="{{ ov }}" {{ 'selected' if ov|string == value|string }}>{{ ol }}</option>
+    {% endfor %}
+  </select>
+</div>
+{% endmacro %}
+
+{% macro progress(pct, label='Progress') %}
+<div class="progress" role="progressbar" aria-label="{{ label }}" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="width: {{ pct }}%"></div></div>
+{% endmacro %}
+
+{# Small POST form with an icon button. confirm is an optional confirmation message. #}
+{% macro icon_form(url, icon, title, next='', confirm='', cls='', fields={}) %}
+<form method="post" action="{{ url }}" {% if confirm %}onsubmit="return confirm('{{ confirm }}')"{% endif %}>
+  {{ csrf() }}
+  {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+  {% for k, v in fields.items() %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+  <button class="icon-btn {{ cls }}" type="submit" title="{{ title }}" aria-label="{{ title }}"><i data-lucide="{{ icon }}"></i></button>
+</form>
+{% endmacro %}
+
+{% macro check_form(url, done, next='') %}
+<form method="post" action="{{ url }}">
+  {{ csrf() }}
+  {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+  <button class="check {{ 'checked' if done }}" type="submit" aria-label="{{ 'Mark as not done' if done else 'Mark as done' }}">{% if done %}<i data-lucide="check"></i>{% endif %}</button>
+</form>
+{% endmacro %}

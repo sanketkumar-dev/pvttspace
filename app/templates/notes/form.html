@@ -1,0 +1,61 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}{{ 'Edit note' if note else 'New note' }}{% endblock %}
+{% block content %}
+{% set f = form or {} %}
+{% set v_title = f.get('title', note.title if note else '') %}
+{% set v_content = f.get('content', note.content if note else '') %}
+{% set v_cat = f.get('category', note.category if note else 'Personal') %}
+{% if form %}
+  {% set v_imp = 'is_important' in form %}
+  {% set v_pin = 'is_pinned' in form %}
+{% else %}
+  {% set v_imp = note.is_important if note else false %}
+  {% set v_pin = note.is_pinned if note else false %}
+{% endif %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+  <h1 class="page-title mb-0">{{ 'Edit note' if note else 'New note' }}</h1>
+  <a class="btn btn-outline-secondary" href="{{ url_for('notes.index') }}">Back to notes</a>
+</div>
+<section class="panel">
+  <form method="post" id="note-form" novalidate {% if note %}data-autosave="{{ url_for('notes.autosave', note_id=note.id) }}"{% endif %}>
+    {{ m.csrf() }}
+    <div class="mb-3">
+      <label class="form-label" for="note-title">Title</label>
+      <input class="form-control" id="note-title" name="title" maxlength="200" value="{{ v_title }}" {{ 'autofocus' if not note }}>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="note-content">Content</label>
+      <textarea class="form-control note-editor" id="note-content" name="content" rows="14" maxlength="100000">{{ v_content }}</textarea>
+    </div>
+    <div class="row g-3 align-items-end mb-3">
+      <div class="col-sm-4">
+        <label class="form-label" for="note-category">Category</label>
+        <select class="form-select" id="note-category" name="category">
+          {% for c in categories %}<option value="{{ c }}" {{ 'selected' if c == v_cat }}>{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-auto">
+        <div class="form-check"><input class="form-check-input" type="checkbox" id="is_pinned" name="is_pinned" {{ 'checked' if v_pin }}><label class="form-check-label" for="is_pinned">Pin this note</label></div>
+      </div>
+      <div class="col-sm-auto">
+        <div class="form-check"><input class="form-check-input" type="checkbox" id="is_important" name="is_important" {{ 'checked' if v_imp }}><label class="form-check-label" for="is_important">Mark as important</label></div>
+      </div>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-3">
+      <button class="btn btn-primary" type="submit">{{ 'Save note' if note else 'Create note' }}</button>
+      {% if note %}<span class="text-secondary" id="save-status" aria-live="polite">Changes save automatically</span>{% endif %}
+    </div>
+  </form>
+  {% if note %}
+  <hr>
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div class="text-secondary small">Created {{ note.created_at|fdatetime }}. Last edited {{ note.updated_at|fdatetime }}.</div>
+    <form method="post" action="{{ url_for('notes.delete', note_id=note.id) }}" onsubmit="return confirm('Move this note to the recycle bin?')">
+      {{ m.csrf() }}
+      <button class="btn btn-outline-danger btn-sm d-flex align-items-center gap-2" type="submit"><i data-lucide="trash-2"></i>Move to recycle bin</button>
+    </form>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

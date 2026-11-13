@@ -1,0 +1,47 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<h1 class="page-title">My Profile</h1>
+<div class="row g-4">
+  <div class="col-lg-6">
+    <section class="panel mb-4">
+      <h2 class="panel-title">Account details</h2>
+      <form method="post" action="{{ url_for('account.update_profile') }}" novalidate>
+        {{ m.csrf() }}
+        {{ m.field('full_name', 'Full name', current_user.full_name, 'text', true, 'maxlength="100"') }}
+        <div class="mb-3"><label class="form-label" for="email">Email address</label><input class="form-control" id="email" type="email" value="{{ current_user.email }}" disabled aria-describedby="email-help"><div class="form-text" id="email-help">Change your email in <a href="{{ url_for('account.settings') }}">Settings</a>.</div></div>
+        {{ m.field('phone', 'Phone number', current_user.phone or '', 'tel') }}
+        <div class="form-text mb-3">Member since {{ current_user.created_at|fdate }}</div>
+        <button class="btn btn-primary" type="submit">Save profile</button>
+      </form>
+    </section>
+    <section class="panel">
+      <h2 class="panel-title">Profile picture</h2>
+      <div class="d-flex align-items-center gap-3 mb-3">
+        {% if current_user.avatar %}<img class="avatar avatar-lg" src="{{ url_for('account.picture') }}?v={{ current_user.avatar }}" alt="Your profile picture">{% else %}<span class="avatar avatar-lg avatar-text" aria-hidden="true">{{ current_user.initials }}</span>{% endif %}
+        <form method="post" action="{{ url_for('account.picture') }}" enctype="multipart/form-data" class="flex-grow-1">
+          {{ m.csrf() }}
+          <label class="visually-hidden" for="picture">Choose a picture</label>
+          <input class="form-control mb-2" id="picture" type="file" name="picture" accept=".png,.jpg,.jpeg,.webp" required>
+          <button class="btn btn-outline-secondary btn-sm" type="submit">Upload picture</button>
+        </form>
+      </div>
+      <div class="form-text mb-2">PNG, JPG or WebP, up to 2 MB. Only you can see it.</div>
+      {% if current_user.avatar %}<form method="post" action="{{ url_for('account.picture_remove') }}">{{ m.csrf() }}<button class="btn btn-outline-danger btn-sm" type="submit">Remove picture</button></form>{% endif %}
+    </section>
+  </div>
+  <div class="col-lg-6">
+    <section class="panel">
+      <h2 class="panel-title">Change password</h2>
+      <form method="post" action="{{ url_for('account.change_password') }}" novalidate>
+        {{ m.csrf() }}
+        {{ m.field('current_password', 'Current password', '', 'password', true, 'autocomplete="current-password"') }}
+        {{ m.field('new_password', 'New password', '', 'password', true, 'minlength="8" autocomplete="new-password"', 'At least 8 characters.') }}
+        {{ m.field('confirm_password', 'Confirm new password', '', 'password', true, 'autocomplete="new-password"') }}
+        <button class="btn btn-primary" type="submit">Change password</button>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

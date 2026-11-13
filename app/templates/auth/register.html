@@ -1,0 +1,34 @@
+{% extends "public.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Create account{% endblock %}
+{% block content %}
+<h1 class="page-title">Create your account</h1>
+<p class="text-secondary mb-4">Your notes and tasks are private to your account.</p>
+<form method="post" novalidate>
+  {{ m.csrf() }}
+  <div class="mb-3">
+    <label class="form-label" for="full_name">Full name</label>
+    <input class="form-control" id="full_name" name="full_name" maxlength="100" autocomplete="name" required autofocus value="{{ form.get('full_name', '') }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="email">Email address</label>
+    <input class="form-control" id="email" name="email" type="email" autocomplete="email" required value="{{ form.get('email', '') }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="phone">Phone number <span class="text-secondary">(optional)</span></label>
+    <input class="form-control" id="phone" name="phone" type="tel" autocomplete="tel" value="{{ form.get('phone', '') }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label" for="password">Password</label>
+    <input class="form-control" id="password" name="password" type="password" minlength="8" autocomplete="new-password" required aria-describedby="pw-help">
+    <div class="form-text" id="pw-help">At least 8 characters.</div>
+  </div>
+  <div class="mb-4">
+    <label class="form-label" for="confirm_password">Confirm password</label>
+    <input class="form-control" id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" required>
+  </div>
+  <button class="btn btn-primary w-100" type="submit">Create account</button>
+  <p class="form-text mt-3 mb-0">By creating an account you agree to the <a href="{{ url_for('main.terms') }}">terms and conditions</a> and the <a href="{{ url_for('main.privacy') }}">privacy policy</a>.</p>
+</form>
+<p class="mt-4 mb-0 text-secondary">Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+{% endblock %}

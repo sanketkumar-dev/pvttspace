@@ -1,0 +1,12 @@
+{% extends "public.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Choose a new password{% endblock %}
+{% block content %}
+<h1 class="page-title">Choose a new password</h1>
+<form method="post" novalidate>
+  {{ m.csrf() }}
+  {{ m.field('password', 'New password', '', 'password', true, 'minlength="8" autocomplete="new-password" autofocus', 'At least 8 characters.') }}
+  {{ m.field('confirm_password', 'Confirm new password', '', 'password', true, 'autocomplete="new-password"') }}
+  <button class="btn btn-primary w-100" type="submit">Update password</button>
+</form>
+{% endblock %}

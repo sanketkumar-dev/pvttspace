@@ -1,0 +1,52 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}{{ 'Edit task' if task else 'New task' }}{% endblock %}
+{% block content %}
+{% set f = form or {} %}
+{% set v_title = f.get('title', task.title if task else '') %}
+{% set v_desc = f.get('description', task.description if task else '') %}
+{% set v_prio = f.get('priority', task.priority if task else 'Medium') %}
+{% set v_cat = f.get('category', task.category if task else 'Personal') %}
+{% set v_date = f.get('due_date', (task.due_date.isoformat() if task and task.due_date else '')) %}
+{% set v_time = f.get('due_time', (task.due_time.strftime('%H:%M') if task and task.due_time else '')) %}
+<h1 class="page-title">{{ 'Edit task' if task else 'New task' }}</h1>
+<section class="panel form-narrow">
+  <form method="post" novalidate>
+    {{ m.csrf() }}
+    <div class="mb-3">
+      <label class="form-label" for="title">Title</label>
+      <input class="form-control" id="title" name="title" maxlength="200" required autofocus value="{{ v_title }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="description">Description</label>
+      <textarea class="form-control" id="description" name="description" rows="4" maxlength="5000">{{ v_desc }}</textarea>
+    </div>
+    <div class="row g-3 mb-3">
+      <div class="col-sm-6">
+        <label class="form-label" for="priority">Priority</label>
+        <select class="form-select" id="priority" name="priority">
+          {% for p in priorities %}<option value="{{ p }}" {{ 'selected' if p == v_prio }}>{{ p }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label" for="category">Category</label>
+        <select class="form-select" id="category" name="category">
+          {% for c in categories %}<option value="{{ c }}" {{ 'selected' if c == v_cat }}>{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label" for="due_date">Due date</label>
+        <input class="form-control" id="due_date" name="due_date" type="date" value="{{ v_date }}">
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label" for="due_time">Due time</label>
+        <input class="form-control" id="due_time" name="due_time" type="time" value="{{ v_time }}">
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary" type="submit">{{ 'Save task' if task else 'Add task' }}</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('tasks.index') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

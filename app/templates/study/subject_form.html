@@ -1,0 +1,13 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}{{ 'Edit subject' if subject else 'Add subject' }}{% endblock %}
+{% block content %}
+{% set f = form or {} %}
+<h1 class="page-title">{{ 'Edit subject' if subject else 'Add subject' }}</h1>
+<section class="panel form-narrow"><form method="post" novalidate>
+  {{ m.csrf() }}
+  {{ m.field('name', 'Subject name', f.get('name', subject.name if subject else ''), 'text', true, 'maxlength="150" autofocus') }}
+  {{ m.select('semester', 'Semester', [1,2,3,4,5,6,7,8], f.get('semester', subject.semester if subject else 1)) }}
+  <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">{{ 'Save subject' if subject else 'Add subject' }}</button><a class="btn btn-outline-secondary" href="{{ url_for('study.subject', sid=subject.id) if subject else url_for('study.index') }}">Cancel</a></div>
+</form></section>
+{% endblock %}

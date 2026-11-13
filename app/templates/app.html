@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block body %}
+{% set ep = request.endpoint or '' %}
+{% set nav = [
+  ('main.dashboard', 'main.dashboard', 'layout-dashboard', 'Dashboard'),
+  ('goals.', 'goals.index', 'target', 'Goals &amp; Progress'),
+  ('tasks.', 'tasks.index', 'list-checks', 'Daily Tasks'),
+  ('notes.', 'notes.index', 'file-text', 'Notes &amp; Notepad'),
+  ('docs.', 'docs.index', 'folder', 'Documents &amp; Files'),
+  ('money.', 'money.index', 'wallet', 'Expense Manager'),
+  ('calendar.', 'calendar.index', 'calendar-days', 'Calendar &amp; Events'),
+  ('reminders.', 'reminders.index', 'bell', 'Reminders &amp; Alarms'),
+  ('study.', 'study.index', 'graduation-cap', 'Study &amp; Syllabus'),
+  ('analytics.', 'analytics.index', 'chart-column', 'Graphs &amp; Analytics'),
+  ('main.calculator', 'main.calculator', 'calculator', 'Calculator'),
+  ('account.settings', 'account.settings', 'settings', 'Settings'),
+  ('account.profile', 'account.profile', 'user', 'My Profile')
+] %}
+{% set extra = [
+  ('main.favourites', 'main.favourites', 'star', 'Favourites'),
+  ('main.trash', 'main.trash', 'trash-2', 'Recycle Bin')
+] %}
+{% set next_theme = {'light': 'dark', 'dark': 'system', 'system': 'light'}[theme] %}
+<div class="app" id="app-root" data-notify="{{ 1 if current_user.reminder_notifications else 0 }}">
+  <div class="overlay" id="overlay"></div>
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="sidebar-head">
+      <a class="brand" href="{{ url_for('main.dashboard') }}">{{ site_name }}</a>
+      <div class="tagline">{{ tagline }}</div>
+    </div>
+    <nav class="sidebar-nav">
+      {% for prefix, endpoint, icon, label in nav %}
+        <a href="{{ url_for(endpoint) }}" class="nav-item {{ 'active' if ep.startswith(prefix) }}" {% if ep.startswith(prefix) %}aria-current="page"{% endif %}>
+          <i data-lucide="{{ icon }}"></i><span>{{ label|safe }}</span>
+        </a>
+      {% endfor %}
+      <div class="nav-sep"></div>
+      {% for prefix, endpoint, icon, label in extra %}
+        <a href="{{ url_for(endpoint) }}" class="nav-item {{ 'active' if ep.startswith(prefix) }}" {% if ep.startswith(prefix) %}aria-current="page"{% endif %}>
+          <i data-lucide="{{ icon }}"></i><span>{{ label|safe }}</span>
+        </a>
+      {% endfor %}
+    </nav>
+    <div class="sidebar-foot">
+      <div class="who">
+        {% if current_user.avatar %}
+          <img class="avatar" src="{{ url_for('account.picture') }}?v={{ current_user.avatar }}" alt="">
+        {% else %}
+          <span class="avatar avatar-text" aria-hidden="true">{{ current_user.initials }}</span>
+        {% endif %}
+        <div class="who-text">
+          <div class="who-name">{{ current_user.full_name }}</div>
+          {% if not current_user.hide_email %}<div class="who-email">{{ current_user.email }}</div>{% endif %}
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <form method="post" action="{{ url_for('account.set_theme') }}" class="flex-grow-1">
+          {{ m.csrf() }}
+          <input type="hidden" name="value" value="{{ next_theme }}">
+          <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+          <button class="btn btn-outline-secondary btn-sm w-100" type="submit" title="Switch theme">Theme: {{ theme|capitalize }}</button>
+        </form>
+        <form method="post" action="{{ url_for('auth.logout') }}">
+          {{ m.csrf() }}
+          <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" type="submit"><i data-lucide="log-out"></i>Log out</button>
+        </form>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menu-btn" type="button" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu"></i></button>
+      <a class="brand d-lg-none" href="{{ url_for('main.dashboard') }}">{{ site_name }}</a>
+      <form class="topbar-search" method="get" action="{{ url_for('main.search') }}" role="search">
+        <label class="visually-hidden" for="global-search">Search everything</label>
+        <input class="form-control" id="global-search" name="q" type="search" placeholder="Search notes, tasks, files, goals, events" minlength="2" value="{{ request.args.get('q', '') if ep == 'main.search' else '' }}">
+      </form>
+      <button class="btn btn-primary d-flex align-items-center gap-2" type="button" data-bs-toggle="modal" data-bs-target="#quickAdd"><i data-lucide="plus"></i><span class="d-none d-sm-inline">Quick add</span></button>
+    </header>
+    <main class="content">
+      {% include "_flashes.html" %}
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="app-foot">
+      <a href="{{ url_for('main.privacy') }}">Privacy policy</a>
+      <a href="{{ url_for('main.terms') }}">Terms and conditions</a>
+    </footer>
+  </div>
+</div>
+
+<div class="modal fade" id="quickAdd" tabindex="-1" aria-labelledby="quickAddTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h2 class="modal-title fs-5" id="quickAddTitle">Quick add</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+      <div class="modal-body">
+        {% set next_url = request.full_path.rstrip('?') %}
+        <ul class="nav nav-tabs mb-3" role="tablist">
+          {% for key, label in [('note','Note'),('task','Task'),('expense','Expense'),('reminder','Reminder'),('event','Event')] %}
+          <li class="nav-item" role="presentation"><button class="nav-link {{ 'active' if loop.first }}" data-bs-toggle="tab" data-bs-target="#qa-{{ key }}" type="button" role="tab">{{ label }}</button></li>
+          {% endfor %}
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="qa-note" role="tabpanel">
+            <form method="post" action="{{ url_for('main.quick_add', kind='note') }}">{{ m.csrf() }}<input type="hidden" name="next" value="{{ next_url }}">
+              <div class="mb-3"><label class="form-label" for="qa-note-title">Title</label><input class="form-control" id="qa-note-title" name="title" maxlength="200"></div>
+              <div class="mb-3"><label class="form-label" for="qa-note-content">Note</label><textarea class="form-control" id="qa-note-content" name="content" rows="3"></textarea></div>
+              <button class="btn btn-primary" type="submit">Add note</button></form>
+          </div>
+          <div class="tab-pane fade" id="qa-task" role="tabpanel">
+            <form method="post" action="{{ url_for('main.quick_add', kind='task') }}">{{ m.csrf() }}<input type="hidden" name="next" value="{{ next_url }}">
+              <div class="mb-3"><label class="form-label" for="qa-task-title">Task</label><input class="form-control" id="qa-task-title" name="title" maxlength="200" required></div>
+              <div class="row g-3 mb-3"><div class="col-6"><label class="form-label" for="qa-task-date">Due date</label><input class="form-control" id="qa-task-date" type="date" name="due_date" value="{{ today_iso }}"></div>
+              <div class="col-6"><label class="form-label" for="qa-task-prio">Priority</label><select class="form-select" id="qa-task-prio" name="priority"><option>Low</option><option selected>Medium</option><option>High</option></select></div></div>
+              <button class="btn btn-primary" type="submit">Add task</button></form>
+          </div>
+          <div class="tab-pane fade" id="qa-expense" role="tabpanel">
+            <form method="post" action="{{ url_for('main.quick_add', kind='expense') }}">{{ m.csrf() }}<input type="hidden" name="next" value="{{ next_url }}">
+              <div class="row g-3 mb-3"><div class="col-6"><label class="form-label" for="qa-exp-amount">Amount</label><input class="form-control" id="qa-exp-amount" name="amount" inputmode="decimal" required></div>
+              <div class="col-6"><label class="form-label" for="qa-exp-cat">Category</label><select class="form-select" id="qa-exp-cat" name="category">{% for c in ['Food','Travel','Education','Shopping','Recharge','Entertainment','Personal','Other'] %}<option>{{ c }}</option>{% endfor %}</select></div>
+              <div class="col-6"><label class="form-label" for="qa-exp-date">Date</label><input class="form-control" id="qa-exp-date" type="date" name="date" value="{{ today_iso }}"></div>
+              <div class="col-6"><label class="form-label" for="qa-exp-note">Note</label><input class="form-control" id="qa-exp-note" name="note" maxlength="200"></div></div>
+              <button class="btn btn-primary" type="submit">Add expense</button></form>
+          </div>
+          <div class="tab-pane fade" id="qa-reminder" role="tabpanel">
+            <form method="post" action="{{ url_for('main.quick_add', kind='reminder') }}">{{ m.csrf() }}<input type="hidden" name="next" value="{{ next_url }}">
+              <div class="mb-3"><label class="form-label" for="qa-rem-title">Reminder</label><input class="form-control" id="qa-rem-title" name="title" maxlength="200" required></div>
+              <div class="row g-3 mb-3"><div class="col-6"><label class="form-label" for="qa-rem-date">Date</label><input class="form-control" id="qa-rem-date" type="date" name="date" value="{{ today_iso }}" required></div>
+              <div class="col-6"><label class="form-label" for="qa-rem-time">Time</label><input class="form-control" id="qa-rem-time" type="time" name="time" required></div></div>
+              <button class="btn btn-primary" type="submit">Add reminder</button></form>
+          </div>
+          <div class="tab-pane fade" id="qa-event" role="tabpanel">
+            <form method="post" action="{{ url_for('main.quick_add', kind='event') }}">{{ m.csrf() }}<input type="hidden" name="next" value="{{ next_url }}">
+              <div class="mb-3"><label class="form-label" for="qa-ev-title">Event</label><input class="form-control" id="qa-ev-title" name="title" maxlength="200" required></div>
+              <div class="row g-3 mb-3"><div class="col-6"><label class="form-label" for="qa-ev-date">Date</label><input class="form-control" id="qa-ev-date" type="date" name="date" value="{{ today_iso }}" required></div>
+              <div class="col-6"><label class="form-label" for="qa-ev-cat">Category</label><select class="form-select" id="qa-ev-cat" name="category">{% for c in ['College holiday','College event','Exam date','Assignment submission','Personal event','Birthday','Important date'] %}<option>{{ c }}</option>{% endfor %}</select></div></div>
+              <button class="btn btn-primary" type="submit">Add event</button></form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toasts"></div>
+{% endblock %}

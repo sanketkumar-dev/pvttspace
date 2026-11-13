@@ -1,0 +1,21 @@
+{% extends "app.html" %}
+{% block title %}Search{% endblock %}
+{% block content %}
+<h1 class="page-title">Search</h1>
+{% if q|length < 2 %}<section class="panel text-secondary">Type at least 2 characters in the search box above to search your notes, files, tasks, goals, events and syllabus.</section>
+{% elif total == 0 %}<section class="panel text-secondary">No results for "{{ q }}".</section>
+{% else %}
+<p class="text-secondary">{{ total }} result{{ '' if total == 1 else 's' }} for "{{ q }}"</p>
+{% for group, items in results.items() if items %}
+<section class="panel mb-3"><h2 class="panel-title">{{ group }}</h2><ul class="list-clean">
+  {% for i in items %}<li class="row-item py-2 text-break">
+    {% if group == 'Notes' %}<a href="{{ url_for('notes.edit', note_id=i.id) }}">{{ i.title or 'Untitled note' }}</a>
+    {% elif group == 'Documents and files' %}<a href="{{ url_for('docs.view', doc_id=i.id) }}">{{ i.original_name }}</a>
+    {% elif group == 'Tasks' %}<a href="{{ url_for('tasks.edit', task_id=i.id) }}">{{ i.title }}</a>
+    {% elif group == 'Goals' %}<a href="{{ url_for('goals.detail', goal_id=i.id) }}">{{ i.title }}</a>
+    {% elif group == 'Events' %}<a href="{{ url_for('calendar.edit', event_id=i.id) }}">{{ i.title }}</a> <span class="text-secondary">{{ i.start_date|fdate }}</span>
+    {% elif group == 'Subjects' %}<a href="{{ url_for('study.subject', sid=i.id) }}">{{ i.name }}</a>
+    {% else %}<a href="{{ url_for('study.subject', sid=i.subject_id) }}">{{ i.title }}</a> <span class="text-secondary">in {{ i.subject.name }}</span>{% endif %}
+  </li>{% endfor %}</ul></section>
+{% endfor %}{% endif %}
+{% endblock %}

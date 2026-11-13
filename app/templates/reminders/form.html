@@ -1,0 +1,18 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}{{ 'Edit reminder' if rem else 'New reminder' }}{% endblock %}
+{% block content %}
+{% set f = form or {} %}
+<h1 class="page-title">{{ 'Edit reminder' if rem else 'New reminder' }}</h1>
+<section class="panel form-narrow"><form method="post" novalidate>
+  {{ m.csrf() }}
+  {{ m.field('title', 'Reminder', f.get('title', rem.title if rem else ''), 'text', true, 'maxlength="200" autofocus placeholder="For example: Revise DSA"') }}
+  <div class="row g-3">
+    <div class="col-sm-6">{{ m.field('date', 'Date', f.get('date', rem.remind_at.date().isoformat() if rem else today_iso), 'date', true) }}</div>
+    <div class="col-sm-6">{{ m.field('time', 'Time', f.get('time', rem.remind_at.strftime('%H:%M') if rem else ''), 'time', true) }}</div>
+  </div>
+  {{ m.select('repeat', 'Repeat', [('none', 'One time'), ('daily', 'Every day'), ('weekly', 'Every week')], f.get('repeat', rem.repeat if rem else 'none')) }}
+  <div class="mb-3"><label class="form-label" for="description">Details</label><textarea class="form-control" id="description" name="description" rows="3" maxlength="2000">{{ f.get('description', rem.description if rem else '') }}</textarea></div>
+  <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">{{ 'Save reminder' if rem else 'Add reminder' }}</button><a class="btn btn-outline-secondary" href="{{ url_for('reminders.index') }}">Cancel</a></div>
+</form></section>
+{% endblock %}

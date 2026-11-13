@@ -1,0 +1,31 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Borrowed and lent{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3"><h1 class="page-title mb-0">Borrowed, lent and pending payments</h1><a class="btn btn-outline-secondary" href="{{ url_for('money.index') }}">Back to expenses</a></div>
+<section class="panel form-narrow mb-3">
+  <h2 class="panel-title">Add an entry</h2>
+  <form method="post" novalidate>
+    {{ m.csrf() }}
+    <div class="row g-3">
+      <div class="col-sm-6">{{ m.select('kind', 'Type', [('borrowed', 'I borrowed money'), ('lent', 'I lent money')], form.get('kind', 'lent')) }}</div>
+      <div class="col-sm-6">{{ m.field('person', 'Person', form.get('person', ''), 'text', true, 'maxlength="100"') }}</div>
+      <div class="col-sm-4">{{ m.field('amount', 'Amount', form.get('amount', ''), 'text', true, 'inputmode="decimal"') }}</div>
+      <div class="col-sm-4">{{ m.field('date', 'Date', form.get('date', today.isoformat()), 'date', true) }}</div>
+      <div class="col-sm-4">{{ m.field('due_date', 'Pay back by', form.get('due_date', ''), 'date') }}</div>
+    </div>
+    {{ m.field('note', 'Note', form.get('note', ''), 'text', false, 'maxlength="200"') }}
+    <button class="btn btn-primary" type="submit">Add entry</button>
+  </form>
+</section>
+<section class="panel p-0">
+  {% if items %}<ul class="list-clean">{% for l in items %}
+    <li class="row-item px-3 align-items-center">
+      <div class="flex-grow-1"><div class="{{ 'done' if l.is_settled }}">{{ 'You owe' if l.kind == 'borrowed' else 'Owes you' }} <strong>{{ l.person }}</strong>: {{ l.amount_paise|inr }}</div>
+        <div class="meta"><span>{{ l.date|fdate }}</span>{% if l.due_date %}<span class="{{ 'text-danger fw-medium' if l.due_date < today and not l.is_settled }}">Pay back by {{ l.due_date|fdate }}</span>{% endif %}{% if l.note %}<span>{{ l.note }}</span>{% endif %}<span>{{ 'Settled' if l.is_settled else 'Pending' }}</span></div></div>
+      <form method="post" action="{{ url_for('money.loan_settle', loan_id=l.id) }}">{{ m.csrf() }}<button class="btn btn-outline-secondary btn-sm" type="submit">{{ 'Reopen' if l.is_settled else 'Mark settled' }}</button></form>
+      {{ m.icon_form(url_for('money.loan_delete', loan_id=l.id), 'trash-2', 'Delete entry', '', 'Delete this entry?') }}
+    </li>{% endfor %}</ul>
+  {% else %}<div class="p-4 text-secondary">No entries yet.</div>{% endif %}
+</section>
+{% endblock %}

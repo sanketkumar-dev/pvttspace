@@ -1,0 +1,85 @@
+
+# ==============================
+# ENVIRONMENT & SECRETS
+# ==============================
+.env
+.env.*
+!.env.example
+instance/
+*.key
+*.pem
+
+# ==============================
+# DATABASE
+# ==============================
+*.db
+*.sqlite
+*.sqlite3
+
+# ==============================
+# USER UPLOADS & PERSONAL DATA
+# ==============================
+uploads/
+app/uploads/
+media/
+user_uploads/
+
+# ==============================
+# PYTHON
+# ==============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+.Python
+
+# ==============================
+# VIRTUAL ENVIRONMENTS
+# ==============================
+.venv/
+venv/
+env/
+ENV/
+virtualenv/
+
+# ==============================
+# TESTING & COVERAGE
+# ==============================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# ==============================
+# BUILD & DISTRIBUTION
+# ==============================
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ==============================
+# IDE & EDITORS
+# ==============================
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# ==============================
+# LOGS & TEMPORARY FILES
+# ==============================
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.bak
+
+# ==============================
+# OPERATING SYSTEM
+# ==============================
+.DS_Store
+Thumbs.db
+Desktop.ini

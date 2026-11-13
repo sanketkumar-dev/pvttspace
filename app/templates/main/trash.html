@@ -1,0 +1,20 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Recycle Bin{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+  <h1 class="page-title mb-0">Recycle Bin</h1>
+  {% if notes or docs %}<form method="post" action="{{ url_for('main.trash_empty') }}" onsubmit="return confirm('Permanently delete everything in the recycle bin? This cannot be undone.')">{{ m.csrf() }}<button class="btn btn-outline-danger" type="submit">Empty recycle bin</button></form>{% endif %}
+</div>
+<p class="text-secondary">Deleted notes and files stay here until you restore them or delete them permanently.</p>
+{% macro rows(items, kind, label) %}
+<section class="panel p-0 mb-3"><div class="p-3 border-bottom fw-medium">{{ label }}</div>
+  {% if items %}<ul class="list-clean">{% for i in items %}
+    <li class="row-item px-3 align-items-center"><div class="flex-grow-1 text-break">{{ (i.title or 'Untitled note') if kind == 'note' else i.original_name }}<div class="meta"><span>Deleted {{ i.deleted_at|fdatetime }}</span></div></div>
+      <form method="post" action="{{ url_for('main.trash_action', kind=kind, item_id=i.id, action='restore') }}">{{ m.csrf() }}<button class="btn btn-outline-secondary btn-sm" type="submit">Restore</button></form>
+      <form method="post" action="{{ url_for('main.trash_action', kind=kind, item_id=i.id, action='delete') }}" onsubmit="return confirm('Delete permanently?')">{{ m.csrf() }}<button class="btn btn-outline-danger btn-sm" type="submit">Delete forever</button></form></li>{% endfor %}</ul>
+  {% else %}<div class="p-3 text-secondary">Empty.</div>{% endif %}</section>
+{% endmacro %}
+{{ rows(notes, 'note', 'Notes') }}
+{{ rows(docs, 'doc', 'Files') }}
+{% endblock %}

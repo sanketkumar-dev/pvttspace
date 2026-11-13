@@ -1,0 +1,27 @@
+{% extends "app.html" %}
+{% block title %}Calendar &amp; Events{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+  <h1 class="page-title mb-0">Calendar &amp; Events</h1>
+  <a class="btn btn-primary d-flex align-items-center gap-2" href="{{ url_for('calendar.new') }}"><i data-lucide="plus"></i>Add event</a>
+</div>
+<p class="text-secondary">Click a date to add an event. Your tasks with due dates and your reminders also appear here.</p>
+<section class="panel"><div id="calendar"></div></section>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var el = document.getElementById('calendar');
+    var cal = new FullCalendar.Calendar(el, {
+      initialView: window.innerWidth < 768 ? 'listMonth' : 'dayGridMonth',
+      headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth' },
+      buttonText: { today: 'Today', month: 'Month', week: 'Week', day: 'Day', list: 'List' },
+      height: 'auto', nowIndicator: true, navLinks: true, firstDay: 1,
+      events: '{{ url_for("calendar.feed") }}',
+      dateClick: function (info) { window.location.href = '{{ url_for("calendar.new") }}?date=' + info.dateStr.slice(0, 10); }
+    });
+    cal.render();
+  });
+</script>
+{% endblock %}

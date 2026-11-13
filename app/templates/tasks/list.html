@@ -1,0 +1,49 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Daily Tasks{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+  <h1 class="page-title mb-0">Daily Tasks</h1>
+  <a class="btn btn-primary d-flex align-items-center gap-2" href="{{ url_for('tasks.new') }}"><i data-lucide="plus"></i>New task</a>
+</div>
+
+<section class="panel mb-3 d-flex flex-wrap align-items-center gap-3">
+  <div><span class="streak-num">{{ streak.current }}</span> <span class="text-secondary">day streak</span></div>
+  <div class="text-secondary small">Best: {{ streak.best }}.
+    {% if streak.today_complete %}Today is complete.{% elif streak.today_total %}{{ streak.today_left }} left today to keep it going.{% else %}Add a task due today to keep it going.{% endif %}</div>
+  <div class="streak-strip ms-md-auto">{% for d, state in streak.recent %}<span class="day day-{{ state }}" title="{{ d.strftime('%d %b') }}">{{ d.day }}</span>{% endfor %}</div>
+</section>
+
+<div class="tabs mb-3" role="navigation" aria-label="Task filters">
+  {% for key, label in [('all','All'),('today','Today'),('week','This week'),('month','This month'),('pending','Pending'),('completed','Completed'),('overdue','Overdue')] %}
+    <a class="tab {{ 'active' if flt == key }}" href="{{ url_for('tasks.index', filter=key) }}" {% if flt == key %}aria-current="page"{% endif %}>{{ label }} <span class="count">{{ counts[key] }}</span></a>
+  {% endfor %}
+</div>
+
+<section class="panel p-0">
+  {% if tasks %}
+    <ul class="list-clean">
+      {% for t in tasks %}
+      {% set overdue = (not t.is_done) and t.due_date and t.due_date < today %}
+      <li class="row-item px-3">
+        {{ m.check_form(url_for('tasks.toggle', task_id=t.id), t.is_done, url_for('tasks.index', filter=flt)) }}
+        <div class="flex-grow-1">
+          <div class="{{ 'done' if t.is_done }}">{{ t.title }}</div>
+          {% if t.description %}<div class="desc">{{ t.description|truncate(140) }}</div>{% endif %}
+          <div class="meta">
+            <span class="prio prio-{{ t.priority }}">{{ t.priority }}</span><span>{{ t.category }}</span>
+            {% if t.due_date %}<span class="{{ 'text-danger fw-medium' if overdue }}">{{ 'Overdue, was due ' if overdue else 'Due ' }}{{ t.due_date|fdate }}{% if t.due_time %}, {{ t.due_time|ftime }}{% endif %}</span>{% endif %}
+          </div>
+        </div>
+        <div class="row-actions">
+          <a class="icon-btn" href="{{ url_for('tasks.edit', task_id=t.id) }}" title="Edit task" aria-label="Edit task"><i data-lucide="pencil"></i></a>
+          {{ m.icon_form(url_for('tasks.delete', task_id=t.id), 'trash-2', 'Delete task', url_for('tasks.index', filter=flt), 'Delete this task? This cannot be undone.') }}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="p-4 text-secondary">{% if flt == 'all' %}No tasks yet. <a href="{{ url_for('tasks.new') }}">Add your first task</a>.{% else %}No tasks match this filter.{% endif %}</div>
+  {% endif %}
+</section>
+{% endblock %}

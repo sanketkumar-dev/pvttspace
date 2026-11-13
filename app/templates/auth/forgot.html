@@ -1,0 +1,13 @@
+{% extends "public.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Forgot password{% endblock %}
+{% block content %}
+<h1 class="page-title">Reset your password</h1>
+<p class="text-secondary">Enter your account email. If it exists, we send a link that works once and expires in 1 hour.</p>
+<form method="post" novalidate>
+  {{ m.csrf() }}
+  {{ m.field('email', 'Email address', '', 'email', true, 'autocomplete="email" autofocus') }}
+  <button class="btn btn-primary w-100" type="submit">Send reset link</button>
+</form>
+<p class="mt-4 mb-0"><a href="{{ url_for('auth.login') }}">Back to log in</a></p>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "app.html" %}
+{% block title %}Graphs &amp; Analytics{% endblock %}
+{% block content %}
+<h1 class="page-title">Graphs &amp; Analytics</h1>
+<section class="panel mb-4">
+  <h2 class="panel-title">Build your own chart</h2>
+  <div class="row g-2 align-items-end mb-3">
+    <div class="col-md-5"><label class="form-label" for="c-dataset">Data</label><select class="form-select" id="c-dataset">{% for key, label, typ in options %}<option value="{{ key }}" data-type="{{ typ }}">{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-6 col-md-3"><label class="form-label" for="c-type">Chart type</label><select class="form-select" id="c-type"><option value="bar">Bar</option><option value="line">Line</option><option value="area">Area</option><option value="pie">Pie</option></select></div>
+    <div class="col-6 col-md-2"><label class="form-label" for="c-days">Range</label><select class="form-select" id="c-days"><option value="7">7 days</option><option value="14" selected>14 days</option><option value="30">30 days</option><option value="90">90 days</option></select></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100" id="c-go" type="button">Show chart</button></div>
+  </div>
+  <div class="chart-box tall"><canvas id="custom-chart" data-chart data-dataset="tasks_daily" data-type="bar" data-days="14" aria-label="Custom chart"></canvas></div>
+  <div class="form-text">Range applies to daily charts and the expenses by category chart. Monthly and weekly charts always show their own period.</div>
+</section>
+<div class="row g-4">
+  {% for title, ds, typ, days in [('Daily study progress','study_daily','line',14),('Weekly productivity','productivity','bar',7),('Daily task completion','tasks_daily','bar',14),('Monthly goal completion','goals_monthly','line',14),('Monthly expenses','expenses_monthly','bar',14),('Income vs expenses','income_expense','bar',14),('Subject-wise syllabus progress','subject_progress','bar',14),('Goal progress','goals_progress','bar',14)] %}
+  <div class="col-lg-6"><section class="panel h-100"><h2 class="panel-title">{{ title }}</h2><div class="chart-box"><canvas data-chart data-dataset="{{ ds }}" data-type="{{ typ }}" data-days="{{ days }}" aria-label="{{ title }}"></canvas></div></section></div>
+  {% endfor %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+  (function () {
+    var canvas = document.getElementById('custom-chart');
+    var ds = document.getElementById('c-dataset'), type = document.getElementById('c-type'), days = document.getElementById('c-days');
+    ds.addEventListener('change', function () { type.value = ds.options[ds.selectedIndex].dataset.type; });
+    document.getElementById('c-go').addEventListener('click', function () {
+      canvas.dataset.dataset = ds.value; canvas.dataset.type = type.value; canvas.dataset.days = days.value;
+      window.renderPvttChart(canvas);
+    });
+  })();
+</script>
+{% endblock %}

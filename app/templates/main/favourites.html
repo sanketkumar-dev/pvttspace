@@ -1,0 +1,11 @@
+{% extends "app.html" %}
+{% block title %}Favourites{% endblock %}
+{% block content %}
+<h1 class="page-title">Favourites</h1>
+<section class="panel mb-3"><h2 class="panel-title">Important and pinned notes</h2>
+  {% if notes %}<ul class="list-clean">{% for n in notes %}<li class="row-item py-2"><div><a class="fw-medium" href="{{ url_for('notes.edit', note_id=n.id) }}">{{ n.title or 'Untitled note' }}</a><div class="meta">{% if n.is_pinned %}<span>Pinned</span>{% endif %}{% if n.is_important %}<span>Important</span>{% endif %}<span>{{ n.updated_at|fdatetime }}</span></div></div></li>{% endfor %}</ul>
+  {% else %}<p class="text-secondary mb-0">No important or pinned notes yet. Use the pin and star buttons on a note.</p>{% endif %}</section>
+<section class="panel"><h2 class="panel-title">Important files</h2>
+  {% if docs %}<ul class="list-clean">{% for d in docs %}<li class="row-item py-2 text-break"><div><a class="fw-medium" href="{{ url_for('docs.view', doc_id=d.id) }}">{{ d.original_name }}</a><div class="meta"><span>{{ d.category }}</span><span>{{ d.created_at|fdate }}</span></div></div></li>{% endfor %}</ul>
+  {% else %}<p class="text-secondary mb-0">No important files yet. Use the star button on a file.</p>{% endif %}</section>
+{% endblock %}

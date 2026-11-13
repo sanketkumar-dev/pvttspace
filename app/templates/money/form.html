@@ -1,0 +1,37 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}{{ 'Edit transaction' if tx else 'Add transaction' }}{% endblock %}
+{% block content %}
+{% set f = form or {} %}
+{% set kind = f.get('kind', tx.kind if tx else request.args.get('kind', 'expense')) %}
+{% set kind = kind if kind in ('income', 'expense') else 'expense' %}
+<h1 class="page-title">{{ 'Edit transaction' if tx else 'Add transaction' }}</h1>
+<section class="panel form-narrow"><form method="post" novalidate>
+  {{ m.csrf() }}
+  <div class="mb-3"><span class="form-label d-block">Type</span>
+    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="kind" id="k-exp" value="expense" {{ 'checked' if kind == 'expense' }}><label class="form-check-label" for="k-exp">Expense</label></div>
+    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="kind" id="k-inc" value="income" {{ 'checked' if kind == 'income' }}><label class="form-check-label" for="k-inc">Income</label></div></div>
+  {{ m.field('amount', 'Amount', f.get('amount', ('%.2f'|format(tx.amount_paise / 100)) if tx else ''), 'text', true, 'inputmode="decimal" autofocus') }}
+  <div class="mb-3"><label class="form-label" for="category">Category</label>
+    <select class="form-select" id="category" name="category" data-expense='{{ cats.expense|tojson|forceescape }}' data-income='{{ cats.income|tojson|forceescape }}' data-selected="{{ f.get('category', tx.category if tx else '') }}"></select></div>
+  {{ m.field('date', 'Date', f.get('date', tx.date.isoformat() if tx else today.isoformat()), 'date', true) }}
+  {{ m.field('note', 'Note', f.get('note', tx.note if tx else ''), 'text', false, 'maxlength="200"') }}
+  <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">{{ 'Save' if tx else 'Add' }}</button><a class="btn btn-outline-secondary" href="{{ url_for('money.index') }}">Cancel</a></div>
+</form></section>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var sel = document.getElementById('category');
+  var lists = { expense: JSON.parse(sel.dataset.expense), income: JSON.parse(sel.dataset.income) };
+  function fill() {
+    var kind = document.querySelector('input[name="kind"]:checked').value;
+    var keep = sel.value || sel.dataset.selected;
+    sel.innerHTML = '';
+    lists[kind].forEach(function (c) { var o = document.createElement('option'); o.value = o.textContent = c; if (c === keep) { o.selected = true; } sel.appendChild(o); });
+  }
+  document.querySelectorAll('input[name="kind"]').forEach(function (r) { r.addEventListener('change', fill); });
+  fill();
+})();
+</script>
+{% endblock %}

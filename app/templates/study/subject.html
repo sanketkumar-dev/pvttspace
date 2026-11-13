@@ -1,0 +1,33 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}{{ s.name }}{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+  <div><h1 class="page-title mb-1">{{ s.name }}</h1><div class="text-secondary">Semester {{ s.semester }}</div></div>
+  <div class="d-flex gap-2"><a class="btn btn-outline-secondary" href="{{ url_for('study.subject_edit', sid=s.id) }}">Edit</a><a class="btn btn-outline-secondary" href="{{ url_for('study.index') }}">All subjects</a>
+    <form method="post" action="{{ url_for('study.subject_delete', sid=s.id) }}" onsubmit="return confirm('Delete this subject and all its topics? This cannot be undone.')">{{ m.csrf() }}<button class="btn btn-outline-danger" type="submit">Delete</button></form></div>
+</div>
+<section class="panel mb-3"><div class="d-flex justify-content-between mb-2"><h2 class="panel-title mb-0">Subject progress</h2><span>{{ s.percent }}% ({{ s.done_count }} of {{ s.total }} topics)</span></div>{{ m.progress(s.percent, 'Subject progress') }}</section>
+{% for u in units %}
+<section class="panel p-0 mb-3">
+  <div class="p-3 border-bottom"><div class="d-flex justify-content-between"><h2 class="panel-title mb-0">{{ u.name }}</h2><span class="text-secondary small">Unit progress {{ u.percent }}% ({{ u.done }} of {{ u.total }})</span></div><div class="mt-2">{{ m.progress(u.percent, u.name ~ ' progress') }}</div></div>
+  {% for ch in u.chapters %}
+    {% if ch.name %}<div class="px-3 pt-3 fw-medium">{{ ch.name }}</div>{% endif %}
+    <ul class="list-clean">{% for t in ch.topics %}
+      <li class="row-item px-3 align-items-center">{{ m.check_form(url_for('study.topic_toggle', tid=t.id), t.is_done) }}<div class="flex-grow-1 {{ 'done' if t.is_done }}">{{ t.title }}</div>{{ m.icon_form(url_for('study.topic_delete', tid=t.id), 'trash-2', 'Delete topic', '', 'Delete this topic?') }}</li>{% endfor %}</ul>
+  {% endfor %}
+</section>
+{% else %}<section class="panel text-secondary mb-3">No topics yet. Add units and topics below to start tracking.</section>{% endfor %}
+<section class="panel form-narrow">
+  <h2 class="panel-title">Add topics</h2>
+  <form method="post" action="{{ url_for('study.topics_add', sid=s.id) }}">
+    {{ m.csrf() }}
+    <div class="row g-3 mb-3">
+      <div class="col-sm-6"><label class="form-label" for="unit">Unit</label><input class="form-control" id="unit" name="unit" list="unit-list" maxlength="100" placeholder="For example: Unit 1"><datalist id="unit-list">{% for n in unit_names %}<option value="{{ n }}">{% endfor %}</datalist></div>
+      <div class="col-sm-6"><label class="form-label" for="chapter">Chapter (optional)</label><input class="form-control" id="chapter" name="chapter" maxlength="100"></div>
+    </div>
+    <div class="mb-3"><label class="form-label" for="topics">Topics</label><textarea class="form-control" id="topics" name="topics" rows="4" placeholder="One topic per line" required></textarea></div>
+    <button class="btn btn-primary" type="submit">Add topics</button>
+  </form>
+</section>
+{% endblock %}

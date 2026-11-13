@@ -1,0 +1,20 @@
+{% extends "app.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Study &amp; Syllabus{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+  <h1 class="page-title mb-0">Study &amp; Syllabus</h1>
+  <div class="d-flex gap-2"><a class="btn btn-primary" href="{{ url_for('study.subject_new') }}">Add subject</a><a class="btn btn-outline-secondary" href="{{ url_for('study.tracker') }}">Practicals, assignments, PYQs</a></div>
+</div>
+<section class="panel mb-4"><div class="d-flex justify-content-between mb-2"><h2 class="panel-title mb-0">Overall syllabus completion</h2><span>{{ overall }}% ({{ done }} of {{ total }} topics)</span></div>{{ m.progress(overall, 'Overall syllabus completion') }}</section>
+{% if has_subjects %}
+  {% for sem, d in sems.items() %}
+  <section class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2"><h2 class="panel-title mb-0">Semester {{ sem }}</h2><span class="text-secondary small">Semester progress {{ d.percent }}%</span></div>
+    <div class="mb-3">{{ m.progress(d.percent, 'Semester ' ~ sem ~ ' progress') }}</div>
+    <div class="row g-3">{% for s in d.subjects %}
+      <div class="col-md-6 col-xl-4"><article class="note-card"><a class="note-title" href="{{ url_for('study.subject', sid=s.id) }}">{{ s.name }}</a>
+        <div class="my-3">{{ m.progress(s.percent, s.name ~ ' progress') }}<div class="d-flex justify-content-between small text-secondary mt-1"><span>{{ s.done_count }} of {{ s.total }} topics</span><span>{{ s.percent }}%</span></div></div></article></div>{% endfor %}</div>
+  </section>{% endfor %}
+{% else %}<section class="panel text-secondary">No subjects yet. <a href="{{ url_for('study.subject_new') }}">Add your first subject</a> and build your own syllabus.</section>{% endif %}
+{% endblock %}
