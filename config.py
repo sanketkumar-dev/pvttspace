@@ -44,7 +44,8 @@ class Config:
 
     MAX_CONTENT_LENGTH = 64 * 1024 * 1024
     MAX_FILE_BYTES = 10 * 1024 * 1024
-    USER_QUOTA_BYTES = 500 * 1024 * 1024
+    USER_QUOTA_BYTES = int(os.environ.get("USER_QUOTA_MB", "500")) * 1024 * 1024
+    ALLOW_REGISTRATION = os.environ.get("ALLOW_REGISTRATION", "1") == "1"
     UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 
     TIMEZONE = os.environ.get("TIMEZONE", "Asia/Kolkata")

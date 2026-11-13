@@ -1,8 +1,7 @@
-
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFError, CSRFProtect
 
 
 # ==========================================
@@ -18,19 +17,20 @@ csrf = CSRFProtect()
 # Application Factory
 # ==========================================
 
-def create_app():
+def create_app(config_class="config.Config"):
 
     app = Flask(__name__)
 
     # Load application configuration
-    app.config.from_object("config.Config")
+    app.config.from_object(config_class)
 
     # Initialize extensions
     db.init_app(app)
 
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
-    login_manager.login_message_category = "info"
+    login_manager.login_message = "Log in to continue."
+    login_manager.login_message_category = "warning"
 
     # Initialize CSRF protection
     csrf.init_app(app)
@@ -47,7 +47,9 @@ def create_app():
         return {
             "site_name": app.config["SITE_NAME"],
             "tagline": app.config["TAGLINE"],
-            "theme": current_user.theme if current_user.is_authenticated else "light",
+            "contact_email": app.config["CONTACT_EMAIL"],
+            "theme": current_user.theme if current_user.is_authenticated else "system",
+            "registration_open": app.config["ALLOW_REGISTRATION"],
             "today_iso": today_local().isoformat(),
         }
 
@@ -90,6 +92,51 @@ def create_app():
     app.register_blueprint(reminders_bp)
     app.register_blueprint(study_bp)
     app.register_blueprint(tasks_bp)
+
+    # ======================================
+    # Security Headers
+    # ======================================
+
+    @app.after_request
+    def security_headers(resp):
+        resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+        resp.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+        resp.headers.setdefault("Referrer-Policy", "same-origin")
+        if current_user.is_authenticated:
+            resp.headers.setdefault("Cache-Control", "no-store")
+        return resp
+
+    # ======================================
+    # Error Pages
+    # ======================================
+
+    def error_page(code, title, message):
+        return render_template("error.html", code=code, title=title, message=message), code
+
+    @app.errorhandler(CSRFError)
+    def csrf_error(e):
+        return error_page(400, "Session expired", "Reload the page and try again.")
+
+    @app.errorhandler(400)
+    def bad_request(e):
+        return error_page(400, "Bad request", "The request could not be understood.")
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        return error_page(403, "Not allowed", "You do not have access to this page.")
+
+    @app.errorhandler(404)
+    def not_found(e):
+        return error_page(404, "Page not found", "The page you asked for does not exist.")
+
+    @app.errorhandler(413)
+    def too_large(e):
+        return error_page(413, "Request too large", "The data you sent is too large.")
+
+    @app.errorhandler(500)
+    def server_error(e):
+        db.session.rollback()
+        return error_page(500, "Something went wrong", "The error was logged. Try again in a moment.")
 
     # ======================================
     # Database Initialization

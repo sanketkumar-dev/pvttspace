@@ -34,6 +34,9 @@ def check_password_rules(password, confirm):
 def register():
     if current_user.is_authenticated:
         return redirect(url_for("main.dashboard"))
+    if not current_app.config["ALLOW_REGISTRATION"]:
+        flash("New registrations are closed.", "warning")
+        return redirect(url_for("auth.login"))
 
     form = {}
     if request.method == "POST":
